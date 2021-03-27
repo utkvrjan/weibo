@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--mybatis的主配置文件-->
+<configuration>
+    <!--定义别名-->
+    <typeAliases>
+        <package name="com.zlt.weibo.entity"/>
+    </typeAliases>
+    <!-- 配置环境-->
+    <environments default="mysql">
+        <!--配置mysql环境-->
+        <environment id="mysql">
+            <!--配置事务的类型-->
+            <transactionManager type="JDBC"></transactionManager>
+            <!--配置数据源(连接池)-->
+            <dataSource type="POOLED">
+                <!--配置连接数据库的基本信息-->
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/weibo?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false&amp;useAffectedRows=true&amp;serverTimezone=Asia/Shanghai"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--指定映射配置文件的位置：映射配置文件指的是每个dao独立的配置文件-->
+    <mappers>
+        <mapper resource="com/zlt/weibo/dao/UserDao.xml"/>
+        <mapper resource="com/zlt/weibo/dao/WeiBoDao.xml"/>
+    </mappers>
+</configuration>

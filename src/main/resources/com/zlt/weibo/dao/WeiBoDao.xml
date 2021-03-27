@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zlt.weibo.dao.WeiBoDao">
+    <!--发送微博的方法-->
+    <insert id="saveWeibo" parameterType="weiBo">
+        insert into weibo (wid,sender,sendTime,content,pic,video) values (#{wid},#{sender.uid},#{sendTime},#{content},#{pic},#{video})
+    </insert>
+
+    <!--未登录情况下查询微博条数-->
+    <select id="selectCountByNotLogin" resultType="int">
+        select count(*) from weibo
+    </select>
+
+    <!--关联查询，根据微博查找用户信息，一对一-->
+    <resultMap id="weiboQuery" type="weibo">
+        <id property="wid" column="wid"/>
+        <result property="sendTime" column="sendTime"/>
+        <result property="content" column="content"/>
+        <result property="pic" column="pic"/>
+        <result property="video" column="video"/>
+        <!--建立一对一关系映射-->
+        <association property="sender" javaType="user">
+            <id property="uid" column="uid"/>
+            <result property="username" column="username"/>
+            <result property="nickname" column="nickname"/>
+            <result property="email" column="email"/>
+            <result property="photo" column="photo"/>
+            <result property="sex" column="sex"/>
+            <result property="regTime" column="regTime"/>
+        </association>
+
+    </resultMap>
+    <!--搜索微博当前页数据-->
+    <select id="selectWeiboByNotLogin" parameterType="pager" resultMap="weiboQuery">
+        <bind name="pageNow" value="(pageNow-1)*pageSize"/>
+        select weibo.wid wid,weibo.content content,weibo.sendTime sendTime,weibo.pic pic,weibo.video video,user.uid uid,user.username username,
+        user.nickname nickname,user.photo photo,user.sex sex from weibo left join user on weibo.sender = user.uid order by weibo.sendTime desc
+        limit #{pageNow},#{pageSize}
+    </select>
+
+    <!--查询登录用户的微博数量-->
+    <select id="selectCountByLogin" parameterType="String" resultType="int">
+        select count(*) from weibo where sender = #{uid};
+    </select>
+
+    <!--查询用户所有微博
+        参数：pager，uid，属于不同类型，需要处理
+    -->
+    <select id="selectWeiboByLogin" resultMap="weiboQuery">
+        <bind name="pageNow" value="(pager.pageNow-1)*pager.pageSize"/>
+        select weibo.wid wid,weibo.content content,weibo.sendTime sendTime,weibo.pic pic,weibo.video video,
+        user.uid uid,user.username username,user.nickname nickname,user.photo photo,user.regTime regTime,user.sex sex
+        from weibo left join user on weibo.sender = user.uid where user.uid = #{uid} order by weibo.sendTime desc limit #{pageNow},#{pager.pageSize}
+    </select>
+
+    <!--根据uid查询微博条数-->
+    <select id="selectCountByUid" parameterType="String" resultType="int">
+        select count(*) from weibo where sender = #{uid}
+    </select>
+
+    <!--查找是否有点赞记录-->
+    <select id="isFabulous" resultType="fabulous">
+        select * from fabulous where wid = #{wid} and uid = #{uid}
+    </select>
+
+    <!--更新点赞信息-->
+    <update id="updateFabulous">
+        update fabulous set visible = #{visible} where uid = #{uid} and wid = #{wid}
+    </update>
+
+    <!--插入点赞的方法-->
+    <insert id="insertFabulous">
+        insert into fabulous (fid,wid,uid,visible) values (#{fid},#{wid},#{uid},#{visible})
+    </insert>
+
+    <!--发送微博评论-->
+    <insert id="saveComments" parameterType="comments">
+        insert into comments (cid,content,uid,wid,sendTime) values (#{cid},#{content},#{uid.uid},#{wid},#{sendTime})
+    </insert>
+
+    <!--关联查询们根据wid查询微博对应的评论，一对多关系-->
+    <resultMap id="commentsQuery" type="comments">
+        <!--基本属性-->
+        <id property="cid" column="cid"/>
+        <result property="content" column="content"/>
+        <result property="wid" column="wid"/>
+        <result property="sendTime" column="sendTime"/>
+        <!--关联属性-->
+        <association property="uid" javaType="user">
+            <id property="uid" column="uid"/>
+            <result property="nickname" column="nickname"/>
+            <result property="photo" column="photo"/>
+        </association>
+    </resultMap>
+    <select id="selectCommentsByWid" parameterType="String" resultMap="commentsQuery">
+        select comments.cid cid,comments.content content,comments.wid wid,comments.sendTime sendTime,user.uid uid, user.nickname nickname,user.photo photo from comments left join user on comments.uid = user.uid where comments.wid = #{wid}
+    </select>
+
+</mapper>

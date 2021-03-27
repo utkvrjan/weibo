@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zlt.weibo.dao.UserDao">
+    <!--保存用户信息-->
+    <insert id="saveUser" parameterType="User">
+        insert into user (uid,username,password,nickname,photo,regTime,logintime,email,sex) values (#{uid},#{username},#{password},#{nickname},#{photo},#{regTime},#{loginTime},#{email},#{sex})
+    </insert>
+
+    <!--执行登录的方法-->
+    <select id="selectUser" parameterType="user" resultType="user">
+        select * from user where username = #{username} and password = #{password}
+    </select>
+    
+    <!--更新用户登录时间的方法-->
+    <update id="updateLoginUser" parameterType="user">
+        update user set loginTime = #{loginTime} where uid = #{uid}
+    </update>
+
+    <!--查询粉丝数量-->
+    <select id="selectFollowCount" parameterType="String" resultType="int">
+        select count(*) from follow where visible = 0 and about = #{uid}
+    </select>
+
+    <!--查询关注数量-->
+    <select id="selectAboutCount" parameterType="String" resultType="int">
+        select count(*) from follow where visible = 0 and follow = #{uid}
+    </select>
+
+    <!--更新用户表的方法-->
+    <update id="updateUser" parameterType="user">
+        update user set password = #{password} , nickname = #{nickname} , photo = #{photo} , email = #{email} ,sex = #{sex} where uid = #{uid}
+    </update>
+
+    <!--根据用户uid查找用户-->
+    <select id="selectUserByUid" parameterType="String" resultType="user">
+        select * from user where uid = #{uid};
+    </select>
+
+    <!--搜索用户的方法-->
+    <select id="searchUser" parameterType="String" resultType="user">
+        select distinct * from user where username like "%"#{keyWords}"%" or nickname like "%"#{keyWords}"%"
+    </select>
+
+    <!--判断关注表中是否该条关注信息-->
+    <select id="isFollow" resultType="follow">
+        select * from follow where follow = #{follow} and about = #{about}
+    </select>
+
+    <!--更新关注表-->
+    <update id="updateFollow">
+        update follow set visible = #{visible} where follow = #{follow} and about = #{about}
+    </update>
+
+    <!--添加关注信息-->
+    <insert id="insertFollow">
+        insert into follow (fid,follow,about,visible) values (#{fid},#{follow},#{about},#{visible})
+    </insert>
+
+    <!--发送私信-->
+    <insert id="insertMessage" parameterType="message">
+        insert into message (mid,sender,receiver,mcontent,sendtime) values (#{mid},#{sender.uid},#{receiver.uid},#{mcontent},#{sendTime})
+    </insert>
+
+    <!--获取好友列表私信人-->
+    <resultMap id="msgPerQuery" type="message">
+        <id property="mid" column="mid"/>
+        <association property="sender" javaType="user">
+            <id property="uid" column="uid"/>
+            <result property="username" column="username"/>
+            <result property="nickname" column="nickname"/>
+            <result property="email" column="email"/>
+            <result property="photo" column="photo"/>
+        </association>
+    </resultMap>
+    <select id="getFriends" parameterType="String" resultMap="msgPerQuery">
+        select user.uid uid,user.username username,user.photo photo,user.nickname nickname from message left join user on message.sender = user.uid where receiver = #{uid}
+    </select>
+
+    <!--获取私信信息-->
+    <resultMap id="msgConQuery" type="message">
+        <id property="mid" column="mid"/>
+        <result property="mcontent" column="mcontent"/>
+        <result property="sendTime" column="sendtime"/>
+        <association property="sender" javaType="user">
+            <id property="uid" column="uid"/>
+            <result property="username" column="username"/>
+            <result property="nickname" column="nickname"/>
+            <result property="email" column="email"/>
+            <result property="sex" column="sex"/>
+            <result property="photo" column="photo"/>
+        </association>
+    </resultMap>
+    <select id="getMessage" resultMap="msgConQuery">
+        select user.uid uid,user.username username,user.nickname nickname,user.photo photo,user.email email,user.sex sex,message.mcontent mcontent,message.sendtime sendTime,message.mid mid from message left join user on message.sender = user.uid where receiver = #{receiver} and sender = #{sender}
+    </select>
+
+</mapper>
