@@ -1,4 +1,4 @@
-public class SchoolDao {
+public class SchoolNameDao {
   private String schoolNme;
   
   
