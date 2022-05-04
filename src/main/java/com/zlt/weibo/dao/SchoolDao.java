@@ -1,5 +1,6 @@
 public class SchoolDao {
-  private String schoolName;
+  private String schoolNme;
+  
   
 
 }
