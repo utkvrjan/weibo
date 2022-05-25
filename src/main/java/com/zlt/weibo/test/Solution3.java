@@ -9,8 +9,6 @@ public class Solution3 {
     }
     interface InnerInterface {
 
-
-
         public void testMenthod();
     }
 }
