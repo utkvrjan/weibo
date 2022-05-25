@@ -5,8 +5,10 @@ public class Solution2 {
     private int age;
 
     public Solution2(String name, int age) {
+
         this.name = name;
         this.age = age;
+
     }
 
     public Solution2() {
